@@ -1,7 +1,7 @@
 import type { GithubSourceConfig } from '../config/schema.js';
 import { fetchWithTimeout, HttpError } from '../core/http.js';
-import { resolveSecret } from '../core/secrets.js';
 import type { Source } from '../core/source.js';
+import { patProvider } from '../core/token.js';
 
 const API = 'https://api.github.com';
 const API_VERSION = '2022-11-28';
@@ -59,7 +59,7 @@ export function githubSource(cfg: GithubSourceConfig): Source<GithubData> {
     ttl: (cfg.refresh ?? 120) * 1000,
     timeout: 30_000,
     async fetch(ctx) {
-      const token = await resolveSecret(cfg.secret, ctx.secrets);
+      const token = await patProvider(cfg.secret, ctx.secrets).token();
       const client = new GithubClient(token, ctx.signal);
 
       const data: GithubData = {
