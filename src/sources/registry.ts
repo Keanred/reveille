@@ -4,6 +4,7 @@ import { clockSource } from './clock.js';
 import { httpJsonSource } from './http-json.js';
 import { weatherSource } from './weather.js';
 import { gitSource } from './git.js';
+import { githubSource } from './github.js';
 
 /**
  * Turns a single config entry into a live Source. The `type` discriminant maps
