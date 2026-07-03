@@ -1,0 +1,70 @@
+# reveille configuration
+#
+# Copy this file to one of the following (first match wins):
+#   $REVEILLE_CONFIG
+#   $XDG_CONFIG_HOME/reveille/config.toml
+#   ~/.config/reveille/config.toml
+#
+# TOML is human-editable and comments are allowed — annotate freely.
+
+[app]
+# Fallback refresh cadence in seconds for sources that don't set their own.
+refresh = 30
+
+# Optional global first-paint budget in seconds. Once it elapses, any panel still
+# stuck on "loading" (no cache + slow first fetch) is forced to a terminal state so
+# the dashboard never hangs half-painted. Cached panels are untouched. Omit for none.
+# budget = 3
+
+# Each [[sources]] block becomes a panel on the dashboard.
+# `type` selects the source implementation (see src/sources/registry.ts).
+
+[[sources]]
+id = "clock"
+type = "clock"
+title = "Local time"
+
+[[sources]]
+id = "hn-top"
+type = "http-json"
+title = "Hacker News — top stories"
+url = "https://hacker-news.firebaseio.com/v0/topstories.json"
+refresh = 60
+
+# Current weather from OpenWeather's free 2.5/weather endpoint. The API key is the
+# `appid` query param — embed it in `url`, or set `secret` to resolve it from the
+# keychain/env and have it appended automatically.
+#
+# [[sources]]
+# id = "weather"
+# type = "weather"
+# title = "Current Weather"
+# url = "https://api.openweathermap.org/data/2.5/weather?lat=62&lon=29.7&units=metric"
+# secret = "keychain:openweather"   # keychain/REVEILLE_SECRET_OPENWEATHER -> appended as ?appid=...
+# refresh = 600
+
+# Scan a list of local git repos in parallel and show, per repo, dirty/clean,
+# ahead/behind vs upstream, and last-commit age. Each repo is scanned concurrently
+# with its own `repoTimeout` budget, so one slow/hung repo degrades to an error row
+# instead of stalling the panel.
+#
+# [[sources]]
+# id = "repos"
+# type = "git"
+# title = "Repositories"
+# refresh = 30
+# repos = ["~/Code/reveille", "~/Code/foo", "~/work/service-a"]  # `~` and env vars expanded
+# fetchRemote = false   # true = run `git fetch` first for live ahead/behind (hits the network)
+# repoTimeout = 3       # per-repo scan budget in seconds
+
+# Sources may reference a secret by name. It is resolved from the OS keychain
+# first (service "reveille"), then from the environment variable
+# REVEILLE_SECRET_<NAME> (uppercased, non-alphanumerics -> "_").
+#
+# [[sources]]
+# id = "github"
+# type = "http-json"
+# title = "GitHub notifications"
+# url = "https://api.github.com/notifications"
+# refresh = 120
+# secret = "github-token"   # -> keychain "github-token" or REVEILLE_SECRET_GITHUB_TOKEN
