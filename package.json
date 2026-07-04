@@ -19,6 +19,7 @@
     "dev": "tsx --env-file-if-exists=.env src/cli.tsx",
     "build": "tsc -p tsconfig.json",
     "start": "node --env-file-if-exists=.env dist/cli.js",
+    "login:google": "tsx --env-file-if-exists=.env src/cli.tsx login google",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
