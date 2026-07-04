@@ -54,12 +54,36 @@ export const githubSourceSchema = baseSource.extend({
   maxPrs: z.number().int().positive().default(20),
 });
 
+export const googleCalendarSourceSchema = baseSource.extend({
+  type: z.literal('google-calendar'),
+  /**
+   * OAuth client id + secret and the refresh token, each a secret reference
+   * (env:/cmd:/keychain:/literal). The refresh token defaults to the keychain
+   * entry `reveille login google` writes; the client id/secret typically point at
+   * env vars (e.g. `env:GOOGLE_CLIENT_ID`).
+   */
+  clientId: z.string().min(1),
+  clientSecret: z.string().min(1),
+  refreshToken: z.string().default('keychain:google-refresh'),
+  /** Which calendar to read. `primary` is the account's default calendar. */
+  calendarId: z.string().default('primary'),
+  /**
+   * IANA timezone that defines "today" and how event times render (e.g.
+   * `America/New_York`). Defaults to the machine's zone. Get this right — it's
+   * what makes all-day events and DST behave.
+   */
+  timezone: z.string().optional(),
+  /** Max events to pull for today. */
+  maxEvents: z.number().int().positive().default(10),
+});
+
 export const sourceSchema = z.discriminatedUnion('type', [
   clockSourceSchema,
   httpJsonSourceSchema,
   weatherSourceSchema,
   gitSourceSchema,
   githubSourceSchema,
+  googleCalendarSourceSchema,
 ]);
 
 export const appSchema = z.object({
@@ -92,14 +116,13 @@ export const configSchema = z
     });
   });
 
-
-
 export type AppConfig = z.infer<typeof appSchema>;
 export type ClockSourceConfig = z.infer<typeof clockSourceSchema>;
 export type HttpJsonSourceConfig = z.infer<typeof httpJsonSourceSchema>;
 export type WeatherSourceConfig = z.infer<typeof weatherSourceSchema>;
 export type GitSourceConfig = z.infer<typeof gitSourceSchema>;
 export type GithubSourceConfig = z.infer<typeof githubSourceSchema>;
+export type GoogleCalendarSourceConfig = z.infer<typeof googleCalendarSourceSchema>;
 export type SourceConfig = z.infer<typeof sourceSchema>;
 export type SourceType = SourceConfig['type'];
 export type ReveilleConfig = z.infer<typeof configSchema>;

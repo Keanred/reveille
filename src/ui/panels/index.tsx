@@ -8,6 +8,8 @@ import { GitPanel } from './GitPanel.js';
 import type { GitData } from '../../sources/git.js';
 import { GithubPanel } from './GithubPanel.js';
 import type { GithubData } from '../../sources/github.js';
+import { GoogleCalendarPanel } from './GoogleCalendarPanel.js';
+import type { CalendarData } from '../../sources/google-calendar.js';
 
 /**
  * Maps a source `kind` to its presentational body. Unknown kinds fall back to a
@@ -24,6 +26,8 @@ export function bodyFor(kind: string): (data: unknown) => ReactNode {
       return (data) => <GitPanel data={data as GitData} />;
     case 'github':
       return (data) => <GithubPanel data={data as GithubData} />;
+    case 'google-calendar':
+      return (data) => <GoogleCalendarPanel data={data as CalendarData} />;
     default:
       return (data) => <JsonPanel data={data} />;
   }

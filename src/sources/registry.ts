@@ -5,6 +5,7 @@ import { httpJsonSource } from './http-json.js';
 import { weatherSource } from './weather.js';
 import { gitSource } from './git.js';
 import { githubSource } from './github.js';
+import { googleCalendarSource } from './google-calendar.js';
 
 /**
  * Turns a single config entry into a live Source. The `type` discriminant maps
@@ -22,6 +23,8 @@ export function buildSource(cfg: SourceConfig): Source {
       return gitSource(cfg);
     case 'github':
       return githubSource(cfg);
+    case 'google-calendar':
+      return googleCalendarSource(cfg);
     default: {
       // Exhaustiveness guard: a new SourceConfig variant will fail to compile here.
       const _exhaustive: never = cfg;
