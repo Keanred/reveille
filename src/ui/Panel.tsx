@@ -20,11 +20,9 @@ function relativeTime(fetchedAt: number | undefined): string {
 export interface PanelProps<T> {
   title: string;
   state: SourceState<T>;
-  /** Renders the source's data into the panel body. Only called when data exists. */
   body: (data: T) => ReactNode;
 }
 
-/** Generic dashboard tile: heading + status badge + a state-aware body. */
 export function Panel<T>({ title, state, body }: PanelProps<T>) {
   const badge = STATUS_BADGE[state.status];
   const fetchedAt = state.status === 'ok' || state.status === 'stale' ? state.fetchedAt : undefined;
@@ -64,9 +62,9 @@ function renderBody<T>(state: SourceState<T>, body: (data: T) => ReactNode): Rea
   if (state.status === 'loading') {
     return <Text dimColor>loading…</Text>;
   }
-  // Stale = last-known data while a refresh is failing; dim it to signal "not live".
+  // Render stale body as-is: wrapping a <Box> body in <Text> crashes Ink.
   if (state.status === 'stale') {
-    return <Text dimColor>{body(state.data)}</Text>;
+    return body(state.data);
   }
   return body(state.data);
 }
