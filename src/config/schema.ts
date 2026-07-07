@@ -1,11 +1,8 @@
 import { z } from 'zod';
 
-/** Zod schema + inferred types for the parsed TOML config. */
-
 const baseSource = z.object({
   id: z.string().min(1),
   title: z.string().optional(),
-  /** Per-source refresh cadence in seconds. */
   refresh: z.number().positive().optional(),
 });
 
@@ -16,15 +13,12 @@ export const clockSourceSchema = baseSource.extend({
 export const httpJsonSourceSchema = baseSource.extend({
   type: z.literal('http-json'),
   url: z.url(),
-  /** Secret reference (env:/cmd:/keychain:/literal) resolved and sent as a Bearer token. */
   secret: z.string().optional(),
 });
 
 export const weatherSourceSchema = baseSource.extend({
   type: z.literal('weather'),
-  /** OpenWeather 2.5 `/weather` endpoint. The API key may be baked in as `appid`. */
   url: z.url(),
-  /** Optional secret resolved and appended as the `appid` query param. */
   secret: z.string().optional(),
 });
 
@@ -37,45 +31,59 @@ export const gitSourceSchema = baseSource.extend({
 
 export const githubSourceSchema = baseSource.extend({
   type: z.literal('github'),
-  /**
-   * Secret reference (env:/cmd:/keychain:/literal) for a Personal Access Token,
-   * resolved and sent as a Bearer token. A classic PAT needs `repo` + `notifications`
-   * scopes; a fine-grained token needs Pull requests (read) + Notifications (read).
-   */
   secret: z.string(),
-  /** Which sections to fetch/show. All default on — turn off what you don't want. */
-  reviewRequests: z.boolean().default(true), // PRs awaiting your review
-  myPrs: z.boolean().default(true), // your open PRs + CI status
-  notifications: z.boolean().default(true), // unread notification count
-  /**
-   * Cap on PRs pulled per section. Bounds the per-PR CI fan-out so a large backlog
-   * can't drain the API rate-limit bucket on every refresh.
-   */
+  reviewRequests: z.boolean().default(true),
+  myPrs: z.boolean().default(true),
+  notifications: z.boolean().default(true),
   maxPrs: z.number().int().positive().default(20),
 });
 
 export const googleCalendarSourceSchema = baseSource.extend({
   type: z.literal('google-calendar'),
-  /**
-   * OAuth client id + secret and the refresh token, each a secret reference
-   * (env:/cmd:/keychain:/literal). The refresh token defaults to the keychain
-   * entry `reveille login google` writes; the client id/secret typically point at
-   * env vars (e.g. `env:GOOGLE_CLIENT_ID`).
-   */
   clientId: z.string().min(1),
   clientSecret: z.string().min(1),
   refreshToken: z.string().default('keychain:google-refresh'),
-  /** Which calendar to read. `primary` is the account's default calendar. */
   calendarId: z.string().default('primary'),
-  /**
-   * IANA timezone that defines "today" and how event times render (e.g.
-   * `America/New_York`). Defaults to the machine's zone. Get this right — it's
-   * what makes all-day events and DST behave.
-   */
   timezone: z.string().optional(),
-  /** Max events to pull for today. */
   maxEvents: z.number().int().positive().default(10),
 });
+
+export const todoSourceSchema = baseSource.extend({
+  type: z.literal('todo'),
+  path: z.string().min(1),
+  section: z.string().default('Today'),
+});
+
+export const dockerSourceSchema = baseSource.extend({
+  type: z.literal('docker'),
+  timeout: z.number().positive().default(5),
+});
+
+export const localsSourceSchema = baseSource.extend({
+  type: z.literal('locals'),
+  disks: z.string(),
+  battery: z.boolean().default(true),
+  refresh: z.number().positive().default(60),
+});
+
+export const daylightSourceSchema = baseSource.extend({
+  id: z.string(),
+  type: z.literal('daylight'),
+  title: z.string().optional(),
+  lat: z.number().min(-90).max(90),
+  lon: z.number().min(-180).max(180),
+  timezone: z.string().optional(),
+  refresh: z.number().positive().default(3600),
+});
+
+export const headlineSourceSchema = baseSource.extend({
+  id: z.string(),
+  type: z.literal('headline'),
+  title: z.string().optional(),
+  feed: z.literal('best').or(z.literal('top')),
+
+
+})
 
 export const sourceSchema = z.discriminatedUnion('type', [
   clockSourceSchema,
@@ -84,16 +92,15 @@ export const sourceSchema = z.discriminatedUnion('type', [
   gitSourceSchema,
   githubSourceSchema,
   googleCalendarSourceSchema,
+  todoSourceSchema,
+  dockerSourceSchema,
+  localsSourceSchema,
+  daylightSourceSchema,
+  headlineSourceSchema,
 ]);
 
 export const appSchema = z.object({
-  /** Fallback refresh cadence (seconds) for sources without their own. */
   refresh: z.number().positive().default(30),
-  /**
-   * Optional first-paint budget (seconds). Once it elapses, any panel still
-   * stuck on `loading` (no cache, slow first fetch) is forced to a terminal
-   * state so the board never hangs half-painted. Omit for no budget.
-   */
   budget: z.number().positive().optional(),
 });
 
@@ -126,5 +133,9 @@ export type GoogleCalendarSourceConfig = z.infer<typeof googleCalendarSourceSche
 export type SourceConfig = z.infer<typeof sourceSchema>;
 export type SourceType = SourceConfig['type'];
 export type ReveilleConfig = z.infer<typeof configSchema>;
-
+export type TodoSourceConfig = z.infer<typeof todoSourceSchema>;
+export type DockerSourceConfig = z.infer<typeof dockerSourceSchema>;
+export type LocalsSourceConfig = z.infer<typeof localsSourceSchema>;
+export type DaylightSourceConfig = z.infer<typeof daylightSourceSchema>;
+export type HeadlineSourceConfig = z.infer<typeof headlineSourceSchema>;
 export const DEFAULT_CONFIG: ReveilleConfig = configSchema.parse({});

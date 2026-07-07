@@ -6,11 +6,12 @@ import { weatherSource } from './weather.js';
 import { gitSource } from './git.js';
 import { githubSource } from './github.js';
 import { googleCalendarSource } from './google-calendar.js';
+import { todoSource } from './todo.js';
+import { dockerSource } from './docker.js';
+import { localsSource } from './locals.js';
+import { daylightSource } from './daylight.js';
+import { headlineSource } from './headline.js';
 
-/**
- * Turns a single config entry into a live Source. The `type` discriminant maps
- * to a concrete implementation — add new source types here.
- */
 export function buildSource(cfg: SourceConfig): Source {
   switch (cfg.type) {
     case 'clock':
@@ -25,15 +26,23 @@ export function buildSource(cfg: SourceConfig): Source {
       return githubSource(cfg);
     case 'google-calendar':
       return googleCalendarSource(cfg);
+    case 'todo':
+      return todoSource(cfg);
+    case 'docker':
+      return dockerSource(cfg);
+    case 'locals':
+      return localsSource(cfg);
+    case 'daylight':
+      return daylightSource(cfg);
+    case 'headline':
+      return headlineSource(cfg);
     default: {
-      // Exhaustiveness guard: a new SourceConfig variant will fail to compile here.
       const _exhaustive: never = cfg;
       throw new Error(`Unknown source type: ${JSON.stringify(_exhaustive)}`);
     }
   }
 }
 
-/** Builds every Source declared in the config, applying the app-wide refresh default. */
 export function buildSources(config: ReveilleConfig): Source[] {
   const fallbackMs = config.app.refresh * 1000;
   return config.sources.map((cfg) => {
