@@ -5,23 +5,19 @@ import toml from '@iarna/toml';
 import { z } from 'zod';
 import { configSchema, DEFAULT_CONFIG, type ReveilleConfig } from './schema.js';
 
-/** Root config directory: $XDG_CONFIG_HOME/reveille or ~/.config/reveille. */
 export function configDir(): string {
   const base = process.env.XDG_CONFIG_HOME?.trim() || path.join(os.homedir(), '.config');
   return path.join(base, 'reveille');
 }
 
-/** Path to the TOML config file. Overridable with $REVEILLE_CONFIG. */
 export function configFile(): string {
   return process.env.REVEILLE_CONFIG?.trim() || path.join(configDir(), 'config.toml');
 }
 
-/** On-disk cache directory: ~/.config/reveille/cache. */
 export function cacheDir(): string {
   return path.join(configDir(), 'cache');
 }
 
-/** Thrown when the config file exists but is structurally invalid. */
 export class ConfigError extends Error {
   constructor(message: string) {
     super(message);
@@ -38,7 +34,6 @@ function formatZodError(error: z.ZodError): string {
     .join('; ');
 }
 
-/** Validates already-parsed input against the zod schema, raising a friendly ConfigError. */
 export function validateConfig(input: unknown): ReveilleConfig {
   const result = configSchema.safeParse(input);
   if (!result.success) {
@@ -47,10 +42,6 @@ export function validateConfig(input: unknown): ReveilleConfig {
   return result.data;
 }
 
-/**
- * Loads and validates the config. A missing file is not an error — we return
- * defaults so first-run is friendly.
- */
 export async function loadConfig(file: string = configFile()): Promise<ReveilleConfig> {
   let raw: string;
   try {

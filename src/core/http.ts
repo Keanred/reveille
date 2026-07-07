@@ -1,13 +1,6 @@
 /// <reference lib="dom" />
 
-/**
- * Thin wrappers over the runtime's native `fetch` (undici under the hood on
- * Node 20+). Every request is abortable and timeout-bounded — this is the whole
- * reason we target a modern runtime.
- */
-
 export interface FetchOptions extends RequestInit {
-  /** Abort the request after this many milliseconds. Default: 10_000. */
   timeoutMs?: number;
 }
 
@@ -22,10 +15,6 @@ export class HttpError extends Error {
   }
 }
 
-/**
- * `fetch` with a hard timeout. Any caller-supplied `signal` is combined with the
- * timeout signal via `AbortSignal.any`, so either can abort the request.
- */
 export async function fetchWithTimeout(
   url: string | URL,
   options: FetchOptions = {},
@@ -36,7 +25,6 @@ export async function fetchWithTimeout(
   return fetch(url, { ...init, signal: AbortSignal.any(signals) });
 }
 
-/** `fetchWithTimeout` that asserts a 2xx response and parses JSON. */
 export async function fetchJson<T>(url: string | URL, options: FetchOptions = {}): Promise<T> {
   const res = await fetchWithTimeout(url, {
     ...options,

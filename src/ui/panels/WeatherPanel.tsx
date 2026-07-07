@@ -3,7 +3,6 @@ import type { WeatherData } from '../../sources/weather.js';
 
 const temp = (n: number | null): string => (n == null ? '—' : `${Math.round(n)}°`);
 
-/** Presentational body for a weather source: temperature first, then conditions and extras. */
 export function WeatherPanel({ data }: { data: WeatherData }) {
   const head = [temp(data.temp), data.description].filter(Boolean).join('  ');
   const extra = [

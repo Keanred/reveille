@@ -6,9 +6,7 @@ import { withTimeout } from './timeout.js';
 export interface OrchestratorDeps {
   cache: Cache;
   secrets: SecretStore;
-  /** Clock injection for deterministic tests. Returns epoch milliseconds. */
   now?: () => number;
-  /** Aborts an in-flight load early (e.g. on unmount). */
   signal?: AbortSignal;
 }
 
@@ -23,15 +21,7 @@ async function staleFromCache<T>(
   }
   return null;
 }
-/**
- * Loads one source to completion and resolves to a *terminal* SourceState.
- *
- * It never rejects: a failed or timed-out load falls back to cached data
- * (`stale`) or, with no cache to lean on, surfaces as `error`. The per-fetch
- * deadline comes from the source's own `timeout`. This is the unit the
- * adversarial suite hammers — every failure mode collapses into a state the UI
- * can render rather than an exception that takes down the dashboard.
- */
+
 export async function runSource<T>(
   source: Source<T>,
   deps: OrchestratorDeps,
@@ -79,12 +69,10 @@ export async function* streamAll(
 }
 
 export interface ScheduleDeps extends OrchestratorDeps {
-  /** Delay before a source re-enters the stream. Injectable so tests skip real waits. */
   sleep?: (ms: number, signal?: AbortSignal) => Promise<void>;
-  budgetMs?: number; // optional: max time to spend in the loop before aborting
+  budgetMs?: number;
 }
 
-/** A cancellable delay: resolves after `ms`, or early (and harmlessly) if the signal aborts. */
 function defaultSleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve) => {
     const timer = setTimeout(resolve, ms);
@@ -99,12 +87,6 @@ function defaultSleep(ms: number, signal?: AbortSignal): Promise<void> {
   });
 }
 
-/**
- * The perpetual sibling of {@link streamAll}: each source's update is yielded as
- * it settles, then that source is *re-armed* to re-enter the stream after its own
- * `ttl`. The set never drains, so this runs until `deps.signal` aborts. One race
- * loop, per-source cadence — the single orchestration point the UI drives.
- */
 export async function* scheduleSources(
   sources: readonly Source[],
   deps: ScheduleDeps,
@@ -114,7 +96,6 @@ export async function* scheduleSources(
   const inFlight = new Map<string, Promise<SourceUpdate>>();
   const emitted = new Set<string>();
 
-  // Schedule one source to load after `delayMs`, tagging the result with its id.
   const arm = (src: Source, delayMs: number): void => {
     inFlight.set(
       src.id,
@@ -144,13 +125,11 @@ export async function* scheduleSources(
   let budget: Promise<typeof BUDGET> | null =
     budgetMs != null ? sleep(budgetMs, signal).then(() => BUDGET) : null;
 
-
   while (inFlight.size > 0 && !signal?.aborted) {
     const winner = await Promise.race(
       budget ? [...inFlight.values(), budget] : [...inFlight.values()],
     );
 
-    // Budget elapsed: force any panel still stuck on `loading` to a terminal state.
     if (winner === BUDGET) {
       budget = null;
       for (const src of sources) {
@@ -161,7 +140,7 @@ export async function* scheduleSources(
         emitted.add(src.id);
         yield { id: src.id, state: forced };
       }
-      continue; // forced fetches keep running; return to the race
+      continue;
     }
 
     const update = winner;

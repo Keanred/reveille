@@ -6,7 +6,6 @@ export interface ClockData {
   display: string;
 }
 
-/** A trivial reference Source: emits the current time once per second. */
 export function clockSource(cfg: ClockSourceConfig): Source<ClockData> {
   return {
     id: cfg.id,

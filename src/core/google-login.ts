@@ -11,24 +11,16 @@ import type { SecretStore } from './secrets.js';
 
 const AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth';
 
-/** base64url without padding — the encoding OAuth/PKCE expect. */
 function base64url(buf: Buffer): string {
   return buf.toString('base64').replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
 }
 
-/**
- * A PKCE verifier/challenge pair (RFC 7636). The verifier is a high-entropy secret
- * kept locally; the challenge (its SHA-256) travels in the auth URL, so an
- * intercepted authorization code is useless without the verifier.
- */
 export function generatePkce(): { verifier: string; challenge: string } {
-  const verifier = base64url(randomBytes(32)); // 43 chars, well within the 43–128 range
+  const verifier = base64url(randomBytes(32));
   const challenge = base64url(createHash('sha256').update(verifier).digest());
   return { verifier, challenge };
 }
 
-/** Build the Google consent URL. `access_type=offline` + `prompt=consent` are what
- * make Google return a refresh token (and re-issue one on every login). */
 export function buildAuthUrl(params: {
   clientId: string;
   redirectUri: string;
@@ -51,7 +43,6 @@ export function buildAuthUrl(params: {
   return url.toString();
 }
 
-/** Open a URL in the user's default browser (best-effort; failure is non-fatal). */
 function openBrowser(url: string): void {
   const cmd =
     process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
@@ -62,22 +53,16 @@ function openBrowser(url: string): void {
       shell: process.platform === 'win32',
     }).unref();
   } catch {
-    /* user can copy the URL from the printed prompt instead */
+    // noop
   }
 }
 
 interface Loopback {
   redirectUri: string;
-  /** Resolves with the authorization code once Google redirects back. */
   waitForCode: () => Promise<string>;
   close: () => void;
 }
 
-/**
- * Start a throwaway HTTP server on an ephemeral loopback port to catch Google's
- * redirect. Validates `state` (CSRF), shows the user a "you can close this tab"
- * page, and rejects on `?error=` or timeout.
- */
 function startLoopback(expectedState: string, timeoutMs: number): Promise<Loopback> {
   return new Promise((resolveServer, rejectServer) => {
     let resolveCode: (code: string) => void;
@@ -139,18 +124,11 @@ export interface LoginOptions {
   secrets: SecretStore;
   scope?: string;
   timeoutMs?: number;
-  /** Injectable for tests; defaults to launching the OS browser. */
   openBrowser?: (url: string) => void;
-  /** Progress output; defaults to stdout. */
   log?: (msg: string) => void;
   signal?: AbortSignal;
 }
 
-/**
- * Run the loopback OAuth flow end to end: open the consent page, catch the
- * redirect, exchange the code (with PKCE) for tokens, and persist the refresh
- * token in the keychain for the calendar source to use.
- */
 export async function loginGoogle(opts: LoginOptions): Promise<void> {
   const log = opts.log ?? ((m: string) => process.stdout.write(`${m}\n`));
   const open = opts.openBrowser ?? openBrowser;

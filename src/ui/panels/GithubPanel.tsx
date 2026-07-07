@@ -2,10 +2,6 @@ import { Text } from 'ink';
 import type { ReactNode } from 'react';
 import type { GithubData } from '../../sources/github.js';
 
-/**
- * Presentational body for a GitHub source: review load, your open PRs with a CI
- * roll-up, and the unread count — each section omitted when disabled in config.
- */
 export function GithubPanel({ data }: { data: GithubData }) {
   const chips: ReactNode[] = [];
 

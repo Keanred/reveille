@@ -1,9 +1,3 @@
-/**
- * Secret resolution. Prefers the OS keychain (via the optional `keytar` native
- * module) and falls back to environment variables, so OAuth tokens never have to
- * live in plaintext config.
- */
-
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -17,7 +11,6 @@ export interface SecretStore {
   delete(account: string): Promise<boolean>;
 }
 
-/** Maps a secret name to its environment-variable fallback, e.g. `github-token` -> `REVEILLE_SECRET_GITHUB_TOKEN`. */
 export function envKey(account: string): string {
   return `REVEILLE_SECRET_${account.toUpperCase().replace(/[^A-Z0-9]+/g, '_')}`;
 }
@@ -28,11 +21,6 @@ interface KeytarLike {
   deletePassword(service: string, account: string): Promise<boolean>;
 }
 
-/**
- * Loads `keytar` lazily. The module is an optional native dependency that may
- * fail to install/load on headless machines — we degrade to env vars instead of
- * crashing. A non-literal specifier keeps the type-checker from hard-requiring it.
- */
 async function loadKeytar(): Promise<KeytarLike | null> {
   try {
     const specifier = 'keytar';
@@ -73,7 +61,6 @@ export function createSecretStore(): SecretStore {
   };
 }
 
-/** Runs a shell command and returns its stdout. Backs `cmd:` secret references. */
 async function sh(command: string): Promise<string> {
   const { stdout } = await execAsync(command, { timeout: 10_000 });
   return stdout;
@@ -83,15 +70,6 @@ function fail(ref: string): never {
   throw new Error(`could not resolve secret reference "${ref}"`);
 }
 
-/**
- * Resolves a secret reference from config into its plaintext value. A prefix
- * selects the backend; a bare string is treated as a literal:
- *
- *   env:NAME       → environment variable NAME
- *   cmd:COMMAND…   → trimmed stdout of COMMAND (1Password `op`, `pass`, gopass…)
- *   keychain:NAME  → the OS keychain entry NAME (via the SecretStore)
- *   <bare string>  → the value itself — allowed but discouraged (warned by `reveille doctor`)
- */
 export async function resolveSecret(ref: string, store: SecretStore): Promise<string> {
   if (ref.startsWith('env:')) return process.env[ref.slice(4)] ?? fail(ref);
   if (ref.startsWith('cmd:')) return (await sh(ref.slice(4))).trim();

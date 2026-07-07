@@ -11,7 +11,6 @@ const CALENDAR_API = 'https://www.googleapis.com/calendar/v3/calendars';
 export interface CalendarEvent {
   id: string;
   summary: string;
-  /** Absolute start instant (epoch ms). For all-day events this is midnight in `zone`. */
   startMs: number;
   allDay: boolean;
   location?: string;
@@ -19,22 +18,11 @@ export interface CalendarEvent {
 
 export interface CalendarData {
   zone: string;
-  /** ctx.now() at fetch time — the baseline the panel counts down from. */
   nowMs: number;
-  /** Today's events, sorted by start. */
   events: CalendarEvent[];
-  /** Index of the next upcoming event, or null if none remain today. */
   nextIndex: number | null;
 }
 
-/**
- * Today's events from a Google Calendar, plus which one is next. Auth is a stored
- * OAuth refresh token (via `reveille login google`) turned into access tokens by
- * {@link googleTokenProvider}; a 401 triggers one refresh-and-retry.
- *
- * "Today" and event rendering are resolved in `cfg.timezone` (default: the
- * machine's zone) so all-day events and DST behave — see `core/time.ts`.
- */
 export function googleCalendarSource(cfg: GoogleCalendarSourceConfig): Source<CalendarData> {
   return {
     id: cfg.id,
@@ -78,7 +66,6 @@ export function googleCalendarSource(cfg: GoogleCalendarSourceConfig): Source<Ca
   };
 }
 
-/** A Google Calendar event resource — the subset we read. */
 interface EventItem {
   id?: string;
   summary?: string;
@@ -92,8 +79,7 @@ interface EventsResponse {
 
 function toEvent(item: EventItem, zone: string): CalendarEvent {
   const allDay = item.start?.date != null;
-  // Timed events carry an offset in dateTime, so Date.parse yields the right instant.
-  // All-day events are a floating date → anchor them to midnight in `zone`.
+  // All-day events are a floating date — anchor to midnight in `zone`.
   const startMs = allDay
     ? zonedMidnight(item.start!.date!, zone)
     : Date.parse(item.start?.dateTime ?? '');
@@ -106,7 +92,6 @@ function toEvent(item: EventItem, zone: string): CalendarEvent {
   };
 }
 
-/** GET the events, retrying once with a fresh token if the access token 401s. */
 async function getEvents(
   url: string,
   auth: TokenProvider,

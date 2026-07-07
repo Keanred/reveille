@@ -1,17 +1,11 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-/**
- * Last-known data persisted as JSON on disk so a cold start can paint
- * immediately while fresh data loads in the background.
- */
 export interface CacheEntry<T> {
-  /** ISO-8601 timestamp of when this entry was written. */
   savedAt: string;
   data: T;
 }
 
-/** A swappable last-known-good store. The orchestrator and tests depend on this, not DiskCache. */
 export interface Cache {
   get<T>(key: string): Promise<CacheEntry<T> | null>;
   set<T>(key: string, data: T): Promise<void>;
@@ -28,7 +22,6 @@ export class DiskCache implements Cache {
     return path.join(this.dir, `${sanitize(key)}.json`);
   }
 
-  /** Returns the cached entry, or `null` when absent. */
   async get<T>(key: string): Promise<CacheEntry<T> | null> {
     try {
       const raw = await readFile(this.filePath(key), 'utf8');
@@ -39,7 +32,6 @@ export class DiskCache implements Cache {
     }
   }
 
-  /** Writes the entry atomically (tmp file + rename) so readers never see a torn write. */
   async set<T>(key: string, data: T): Promise<void> {
     await mkdir(this.dir, { recursive: true });
     const entry: CacheEntry<T> = { savedAt: new Date().toISOString(), data };
@@ -50,7 +42,6 @@ export class DiskCache implements Cache {
   }
 }
 
-/** In-memory Cache — handy for the adversarial suite and headless runs. */
 export class MemoryCache implements Cache {
   private readonly store = new Map<string, CacheEntry<unknown>>();
 

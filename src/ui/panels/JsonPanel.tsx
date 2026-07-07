@@ -7,7 +7,6 @@ function preview(data: unknown): string {
   return json.length > 400 ? `${json.slice(0, 400)}…` : json;
 }
 
-/** Fallback presentational body: pretty-prints arbitrary JSON data. */
 export function JsonPanel({ data }: { data: unknown }) {
   return <Text>{preview(data)}</Text>;
 }

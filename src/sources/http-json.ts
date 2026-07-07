@@ -3,10 +3,6 @@ import { fetchJson } from '../core/http.js';
 import { resolveSecret } from '../core/secrets.js';
 import type { Source } from '../core/source.js';
 
-/**
- * Fetches and shows arbitrary JSON from an HTTP endpoint. If the config names a
- * `secret`, it is resolved from the keychain/env and sent as a Bearer token.
- */
 export function httpJsonSource(cfg: HttpJsonSourceConfig): Source<unknown> {
   return {
     id: cfg.id,

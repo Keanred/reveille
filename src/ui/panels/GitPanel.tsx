@@ -1,7 +1,6 @@
 import { Text } from 'ink';
 import type { GitData } from '../../sources/git.js';
 
-/** Presentational body for a git source. */
 export function GitPanel({ data }: { data: GitData }) {
   const repos = data.repos;
   if (!repos.length) return <Text>no repositories configured</Text>;
