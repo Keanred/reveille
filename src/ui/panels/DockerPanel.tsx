@@ -30,6 +30,8 @@ export function DockerPanel({ data }: { data: DockerData }) {
   if (unhealthy) summary.push(`${unhealthy} unhealthy`);
   if (restarting) summary.push(`${restarting} restarting`);
 
+  const nameWidth = Math.max(...containers.map((c) => c.name.length));
+
   return (
     <Box flexDirection="column">
       <Text dimColor>{summary.join('  ·  ')}</Text>
@@ -37,7 +39,8 @@ export function DockerPanel({ data }: { data: DockerData }) {
         const health = classify(c.status);
         return (
           <Text key={c.name}>
-            <Text color={COLOR[health]}>●</Text> {c.name.padEnd(14)} <Text dimColor>{c.status}</Text>
+            <Text color={COLOR[health]}>●</Text> {c.name.padEnd(nameWidth)}{' '}
+            <Text dimColor>{c.status}</Text>
           </Text>
         );
       })}

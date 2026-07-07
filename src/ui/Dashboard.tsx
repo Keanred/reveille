@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Box, Text, useApp, useInput } from 'ink';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Box, Text, measureElement, useApp, useInput, useStdout, type DOMElement } from 'ink';
 import { cacheDir, configFile } from '../config/load.js';
 import type { ReveilleConfig } from '../config/schema.js';
 import type { Cache } from '../core/cache.js';
 import { DiskCache } from '../core/cache.js';
 import { createSecretStore } from '../core/secrets.js';
 import { buildSources } from '../sources/registry.js';
-import { Panel } from './Panel.js';
+import { Panel, PANEL_WIDTH } from './Panel.js';
 import { bodyFor } from './panels/index.js';
 import { useDashboard } from './useDashboard.js';
 import { initialState } from '../core/source.js';
@@ -49,7 +49,7 @@ function Summary({ states }: { states: Map<string, SourceState> }) {
 
   const next = cal?.nextIndex != null ? cal.events[cal.nextIndex] : undefined;
   if (next) segments.push(`Next: ${next.summary} in ${formatCountdown(next.startMs - now)}`);
-  if (cal) segments.push(`${cal.events.length} evCan ents`);
+  if (cal) segments.push(`${cal.events.length} events`);
   if (todo) segments.push(`${todo.TodoItem.filter((i) => !i.done).length} due`);
 
   if (segments.length === 0) return null;
@@ -82,6 +82,39 @@ export function Dashboard({ config }: DashboardProps) {
     if (input === 'q' || (key.ctrl && input === 'c')) exit();
   });
 
+  const { stdout } = useStdout();
+  const termCols = stdout?.columns ?? 80;
+  const numCols = Math.max(1, Math.floor(termCols / (PANEL_WIDTH + 2)));
+
+  // Measure each panel's rendered height so we can balance the columns. Falls back
+  // to a nominal height until the first measurement lands (which makes the initial
+  // pack a plain round-robin), then refines to real heights.
+  const refs = useRef<Map<string, DOMElement>>(new Map());
+  const [heights, setHeights] = useState<Map<string, number>>(new Map());
+  useLayoutEffect(() => {
+    const next = new Map<string, number>();
+    let changed = false;
+    for (const source of sources) {
+      const el = refs.current.get(source.id);
+      if (!el) continue;
+      const h = measureElement(el).height;
+      next.set(source.id, h);
+      if (heights.get(source.id) !== h) changed = true;
+    }
+    if (changed || next.size !== heights.size) setHeights(next);
+  });
+
+  // Masonry: place each panel into whichever column is currently shortest, so the
+  // column bottoms stay roughly even regardless of how tall individual panels are.
+  const NOMINAL_HEIGHT = 5;
+  const colHeights = new Array<number>(numCols).fill(0);
+  const columns: (typeof sources)[] = Array.from({ length: numCols }, () => []);
+  for (const source of sources) {
+    const shortest = colHeights.indexOf(Math.min(...colHeights));
+    columns[shortest]!.push(source);
+    colHeights[shortest]! += (heights.get(source.id) ?? NOMINAL_HEIGHT) + 1; // +1 = marginBottom
+  }
+
   return (
     <Box flexDirection="column">
       <StatusLine count={sources.length} />
@@ -92,14 +125,20 @@ export function Dashboard({ config }: DashboardProps) {
           <Text dimColor>Copy config.example.toml to {configFile()} to begin.</Text>
         </Box>
       ) : (
-        <Box flexWrap="wrap" padding={1}>
-          {sources.map((source) => (
-            <Panel key={source.id}
-            title={source.label}
-            state={states.get(source.id) ?? initialState()}
-            body={bodyFor(source.kind)}
-          />
-        ))}
+        <Box padding={1}>
+          {columns.map((col, ci) => (
+            <Box key={ci} flexDirection="column">
+              {col.map((source) => (
+                <Box key={source.id} ref={(el) => void (el && refs.current.set(source.id, el))}>
+                  <Panel
+                    title={source.label}
+                    state={states.get(source.id) ?? initialState()}
+                    body={bodyFor(source.kind)}
+                  />
+                </Box>
+              ))}
+            </Box>
+          ))}
         </Box>
       )}
     </Box>

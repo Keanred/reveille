@@ -2,6 +2,9 @@ import { Box, Text } from 'ink';
 import type { ReactNode } from 'react';
 import type { SourceState, SourceStatus } from '../core/source.js';
 
+/** Fixed panel width so every column lines up. */
+export const PANEL_WIDTH = 46;
+
 const STATUS_BADGE: Record<SourceStatus, { label: string; color: string }> = {
   loading: { label: '⟳', color: 'cyan' },
   ok: { label: '●', color: 'green' },
@@ -35,7 +38,7 @@ export function Panel<T>({ title, state, body }: PanelProps<T>) {
       paddingX={1}
       marginRight={1}
       marginBottom={1}
-      minWidth={28}
+      width={PANEL_WIDTH}
     >
       <Box justifyContent="space-between">
         <Text bold>{title}</Text>
