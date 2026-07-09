@@ -1,15 +1,16 @@
 import { Box, Text } from 'ink';
 import type { ReactNode } from 'react';
 import type { SourceState, SourceStatus } from '../core/source.js';
+import { useTheme, type Theme } from './theme.js';
+import { friendlyError } from '../core/errors.js';
 
-/** Fixed panel width so every column lines up. */
 export const PANEL_WIDTH = 46;
 
-const STATUS_BADGE: Record<SourceStatus, { label: string; color: string }> = {
-  loading: { label: '⟳', color: 'cyan' },
-  ok: { label: '●', color: 'green' },
-  stale: { label: '◐', color: 'yellow' },
-  error: { label: '✗', color: 'red' },
+const STATUS_BADGE: Record<SourceStatus, { label: string; role: keyof Theme }> = {
+  loading: { label: '⟳', role: 'accent' },
+  ok: { label: '●', role: 'ok' },
+  stale: { label: '◐', role: 'warn' },
+  error: { label: '✗', role: 'error' },
 };
 
 function relativeTime(fetchedAt: number | undefined): string {
@@ -27,14 +28,16 @@ export interface PanelProps<T> {
 }
 
 export function Panel<T>({ title, state, body }: PanelProps<T>) {
+  const theme = useTheme();
   const badge = STATUS_BADGE[state.status];
+  const color = theme[badge.role];
   const fetchedAt = state.status === 'ok' || state.status === 'stale' ? state.fetchedAt : undefined;
 
   return (
     <Box
       flexDirection="column"
       borderStyle="round"
-      borderColor={badge.color}
+      borderColor={color}
       paddingX={1}
       marginRight={1}
       marginBottom={1}
@@ -42,14 +45,14 @@ export function Panel<T>({ title, state, body }: PanelProps<T>) {
     >
       <Box justifyContent="space-between">
         <Text bold>{title}</Text>
-        <Text color={badge.color}>{badge.label}</Text>
+        <Text color={color}>{badge.label}</Text>
       </Box>
 
-      {renderBody(state, body)}
+      {renderBody(state, body, theme)}
 
       {state.status === 'stale' ? (
-        <Text color="yellow" dimColor>
-          ↻ {relativeTime(fetchedAt)}
+        <Text color={theme.warn} dimColor wrap="truncate-end">
+          ↻ {relativeTime(fetchedAt)} · {friendlyError(state.error)}
         </Text>
       ) : (
         <Text dimColor>updated {relativeTime(fetchedAt)}</Text>
@@ -58,9 +61,17 @@ export function Panel<T>({ title, state, body }: PanelProps<T>) {
   );
 }
 
-function renderBody<T>(state: SourceState<T>, body: (data: T) => ReactNode): ReactNode {
+function renderBody<T>(
+  state: SourceState<T>,
+  body: (data: T) => ReactNode,
+  theme: Theme,
+): ReactNode {
   if (state.status === 'error') {
-    return <Text color="red">{state.error.message}</Text>;
+    return (
+      <Text wrap="truncate-end" color={theme.error}>
+        {friendlyError(state.error)}
+      </Text>
+    );
   }
   if (state.status === 'loading') {
     return <Text dimColor>loading…</Text>;

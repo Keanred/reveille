@@ -6,6 +6,7 @@ import { configFile, loadConfig } from './config/load.js';
 import { loginGoogle } from './core/google-login.js';
 import { createSecretStore } from './core/secrets.js';
 import { Dashboard } from './ui/Dashboard.js';
+import { runDoctor } from './commands/doctor.js';
 
 async function readVersion(): Promise<string> {
   const pkgUrl = new URL('../package.json', import.meta.url);
@@ -26,10 +27,17 @@ async function loginGoogleCommand(): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  const args = process.argv.slice(2);
+  const rawArgs = process.argv.slice(2);
+  const verbose = rawArgs.includes('--verbose') || rawArgs.includes('-V');
+  const args = rawArgs.filter((a) => a !== '--verbose' && a !== '-V');
 
   if (args[0] === 'login' && args[1] === 'google') {
     await loginGoogleCommand();
+    return;
+  }
+
+  if (args[0] === 'doctor') {
+    process.exitCode = await runDoctor({ verbose });
     return;
   }
 
@@ -42,10 +50,12 @@ async function main(): Promise<void> {
         '',
         'Commands:',
         '  login google     Authorize Google Calendar (stores a refresh token)',
+        '  doctor           Check config and credentials',
         '',
         'Options:',
         '  -h, --help       Show this help',
         '  -v, --version    Print version',
+        '  --verbose        Print full stack traces on error',
         '',
         `Config: ${configFile()}`,
         '',
@@ -65,6 +75,8 @@ async function main(): Promise<void> {
 }
 
 main().catch((err: unknown) => {
-  process.stderr.write(`reveille: ${(err as Error).message}\n`);
+  const verbose = process.argv.includes('--verbose') || process.argv.includes('-V');
+  const e = err as Error;
+  process.stderr.write(`reveille: ${verbose && e.stack ? e.stack : e.message}\n`);
   process.exitCode = 1;
 });

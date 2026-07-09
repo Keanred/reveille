@@ -32,6 +32,10 @@ async function loadKeytar(): Promise<KeytarLike | null> {
   }
 }
 
+export async function keytarAvailable(): Promise<boolean> {
+  return (await loadKeytar()) !== null;
+}
+
 export function createSecretStore(): SecretStore {
   let keytarPromise: Promise<KeytarLike | null> | undefined;
   const keytar = (): Promise<KeytarLike | null> => (keytarPromise ??= loadKeytar());
