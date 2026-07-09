@@ -14,11 +14,15 @@ import type { SourceState } from '../core/source.js';
 import type { CalendarData } from '../sources/google-calendar.js';
 import type { TodoData } from '../sources/todo.js';
 import { formatCountdown } from '../core/time.js';
+import { resolveTheme } from './theme.js';
+import { ThemeProvider } from './theme.js';
+import { useTheme } from './theme.js';
 
 function StatusLine({ count }: { count: number }) {
+  const theme = useTheme();
   return (
     <Box paddingX={1}>
-      <Text bold color="cyan">
+      <Text bold color={theme.accent}>
         reveille
       </Text>
       <Text dimColor> — {count} source(s) · press q to quit</Text>
@@ -71,6 +75,7 @@ export function Dashboard({ config }: DashboardProps) {
   const cache = useMemo<Cache>(() => new DiskCache(cacheDir()), []);
   const secrets = useMemo(() => createSecretStore(), []);
   const sources = useMemo(() => buildSources(config), [config]);
+  const theme = useMemo(() => resolveTheme(config.app.theme, config.theme), [config]);
 
   const states = useDashboard(sources, {
     cache,
@@ -116,12 +121,13 @@ export function Dashboard({ config }: DashboardProps) {
   }
 
   return (
-    <Box flexDirection="column">
-      <StatusLine count={sources.length} />
-      <Summary states={states} />
-      {sources.length === 0 ? (
-        <Box flexDirection="column" padding={1}>
-          <Text color="yellow">No sources configured.</Text>
+    <ThemeProvider theme={theme}>
+      <Box flexDirection="column">
+        <StatusLine count={sources.length} />
+        <Summary states={states} />
+        {sources.length === 0 ? (
+          <Box flexDirection="column" padding={1}>
+            <Text color={theme.warn}>No sources configured.</Text>
           <Text dimColor>Copy config.example.toml to {configFile()} to begin.</Text>
         </Box>
       ) : (
@@ -141,6 +147,7 @@ export function Dashboard({ config }: DashboardProps) {
           ))}
         </Box>
       )}
-    </Box>
+      </Box>
+    </ThemeProvider>
   );
 }

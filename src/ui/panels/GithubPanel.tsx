@@ -1,8 +1,10 @@
 import { Text } from 'ink';
 import type { ReactNode } from 'react';
 import type { GithubData } from '../../sources/github.js';
+import { useTheme } from '../theme.js';
 
 export function GithubPanel({ data }: { data: GithubData }) {
+  const theme = useTheme();
   const chips: ReactNode[] = [];
 
   if (data.reviewRequests) {
@@ -15,8 +17,8 @@ export function GithubPanel({ data }: { data: GithubData }) {
     chips.push(
       <Text key="prs">
         {data.myPrs.length} open
-        {failing > 0 && <Text color="red"> {failing}✗</Text>}
-        {pending > 0 && <Text color="yellow"> {pending}…</Text>}
+        {failing > 0 && <Text color={theme.error}> {failing}✗</Text>}
+        {pending > 0 && <Text color={theme.warn}> {pending}…</Text>}
       </Text>,
     );
   }
@@ -32,7 +34,7 @@ export function GithubPanel({ data }: { data: GithubData }) {
 
   if (data.rateLimited) {
     chips.push(
-      <Text key="rate" color="yellow" dimColor>
+      <Text key="rate" color={theme.warn} dimColor>
         rate-limited
       </Text>,
     );

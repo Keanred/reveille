@@ -1,5 +1,6 @@
 import { Box, Text } from 'ink';
 import type { DockerData } from '../../sources/docker.js';
+import { useTheme } from '../theme.js';
 
 type Health = 'healthy' | 'unhealthy' | 'restarting' | 'up' | 'other';
 
@@ -11,15 +12,15 @@ function classify(status: string): Health {
   return 'other';
 }
 
-const COLOR: Record<Health, string | undefined> = {
-  healthy: 'green',
-  up: 'green',
-  unhealthy: 'yellow',
-  restarting: 'yellow',
-  other: undefined,
-};
-
 export function DockerPanel({ data }: { data: DockerData }) {
+  const theme = useTheme();
+  const color: Record<Health, string | undefined> = {
+    healthy: theme.ok,
+    up: theme.ok,
+    unhealthy: theme.warn,
+    restarting: theme.warn,
+    other: undefined,
+  };
   const { containers } = data;
   if (containers.length === 0) return <Text dimColor>no running containers</Text>;
 
@@ -39,7 +40,7 @@ export function DockerPanel({ data }: { data: DockerData }) {
         const health = classify(c.status);
         return (
           <Text key={c.name}>
-            <Text color={COLOR[health]}>●</Text> {c.name.padEnd(nameWidth)}{' '}
+            <Text color={color[health]}>●</Text> {c.name.padEnd(nameWidth)}{' '}
             <Text dimColor>{c.status}</Text>
           </Text>
         );

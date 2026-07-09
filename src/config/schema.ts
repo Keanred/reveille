@@ -6,6 +6,17 @@ const baseSource = z.object({
   refresh: z.number().positive().optional(),
 });
 
+const colorSchema = z.string().min(1);
+
+export type ThemeOverride = z.infer<typeof themeOverrideSchema>;
+
+export const themeOverrideSchema = z.object({
+  accent: colorSchema.optional(),
+  ok: colorSchema.optional(),
+  warn: colorSchema.optional(),
+  error: colorSchema.optional(),
+});
+
 export const clockSourceSchema = baseSource.extend({
   type: z.literal('clock'),
 });
@@ -81,8 +92,6 @@ export const headlineSourceSchema = baseSource.extend({
   type: z.literal('headline'),
   title: z.string().optional(),
   feed: z.literal('best').or(z.literal('top')),
-
-
 })
 
 export const sourceSchema = z.discriminatedUnion('type', [
@@ -102,13 +111,16 @@ export const sourceSchema = z.discriminatedUnion('type', [
 export const appSchema = z.object({
   refresh: z.number().positive().default(30),
   budget: z.number().positive().optional(),
+  theme: z.string().default('default'),
 });
 
 export const configSchema = z
   .object({
-    app: appSchema.default({ refresh: 30 }),
+    app: appSchema.default({ refresh: 30, theme: 'default' }),
     sources: z.array(sourceSchema).default([]),
+    theme: themeOverrideSchema.optional(),
   })
+
   .superRefine((cfg, ctx) => {
     const seen = new Set<string>();
     cfg.sources.forEach((source, index) => {

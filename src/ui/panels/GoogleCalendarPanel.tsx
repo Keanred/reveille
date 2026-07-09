@@ -2,8 +2,10 @@ import { Box, Text } from 'ink';
 import { useEffect, useState } from 'react';
 import type { CalendarData } from '../../sources/google-calendar.js';
 import { formatClock, formatCountdown } from '../../core/time.js';
+import { useTheme } from '../theme.js';
 
 export function GoogleCalendarPanel({ data }: { data: CalendarData }) {
+  const theme = useTheme();
   const now = useNowTick(data.nextIndex != null);
 
   if (data.events.length === 0) return <Text dimColor>no events today</Text>;
@@ -15,7 +17,7 @@ export function GoogleCalendarPanel({ data }: { data: CalendarData }) {
       {next && (
         <Text>
           next: <Text bold>{next.summary}</Text> in{' '}
-          <Text color="cyan">{formatCountdown(next.startMs - now)}</Text>
+          <Text color={theme.accent}>{formatCountdown(next.startMs - now)}</Text>
         </Text>
       )}
       {data.events.map((event, i) => {
