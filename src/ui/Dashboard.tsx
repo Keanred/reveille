@@ -10,13 +10,11 @@ import { Panel, PANEL_WIDTH } from './Panel.js';
 import { bodyFor } from './panels/index.js';
 import { useDashboard } from './useDashboard.js';
 import { initialState } from '../core/source.js';
-import type { SourceState } from '../core/source.js';
-import type { CalendarData } from '../sources/google-calendar.js';
-import type { TodoData } from '../sources/todo.js';
-import { formatCountdown } from '../core/time.js';
+import type { Source, SourceState } from '../core/source.js';
 import { resolveTheme } from './theme.js';
 import { ThemeProvider } from './theme.js';
 import { useTheme } from './theme.js';
+import { summarySegments } from '../core/summary.js';
 
 function StatusLine({ count }: { count: number }) {
   const theme = useTheme();
@@ -30,11 +28,6 @@ function StatusLine({ count }: { count: number }) {
   );
 }
 
-function dataFor<T>(states: Map<string, SourceState>, id: string): T | undefined {
-  const s = states.get(id);
-  return s && (s.status === 'ok' || s.status === 'stale') ? (s.data as T) : undefined;
-}
-
 function useNowTick(): number {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -44,17 +37,15 @@ function useNowTick(): number {
   return now;
 }
 
-function Summary({ states }: { states: Map<string, SourceState> }) {
+function Summary({
+  sources,
+  states,
+}: {
+  sources: readonly Source[];
+  states: Map<string, SourceState>;
+}) {
   const now = useNowTick();
-  const cal = dataFor<CalendarData>(states, 'calendar');
-  const todo = dataFor<TodoData>(states, 'todo');
-
-  const segments: string[] = [];
-
-  const next = cal?.nextIndex != null ? cal.events[cal.nextIndex] : undefined;
-  if (next) segments.push(`Next: ${next.summary} in ${formatCountdown(next.startMs - now)}`);
-  if (cal) segments.push(`${cal.events.length} events`);
-  if (todo) segments.push(`${todo.TodoItem.filter((i) => !i.done).length} due`);
+  const segments = summarySegments(sources, states, now);
 
   if (segments.length === 0) return null;
 
@@ -124,7 +115,7 @@ export function Dashboard({ config }: DashboardProps) {
     <ThemeProvider theme={theme}>
       <Box flexDirection="column">
         <StatusLine count={sources.length} />
-        <Summary states={states} />
+        <Summary sources={sources} states={states} />
         {sources.length === 0 ? (
           <Box flexDirection="column" padding={1}>
             <Text color={theme.warn}>No sources configured.</Text>

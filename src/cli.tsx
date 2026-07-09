@@ -6,6 +6,7 @@ import { loginGoogle } from './core/google-login.js';
 import { createSecretStore } from './core/secrets.js';
 import { Dashboard } from './ui/Dashboard.js';
 import { runDoctor } from './commands/doctor.js';
+import { runOnce } from './commands/once.js';
 import { createInterface } from 'node:readline/promises';
 import { configExists, configFile, loadConfig } from './config/load.js';
 import { runInit, scaffoldConfig } from './commands/init.js';
@@ -31,7 +32,8 @@ async function loginGoogleCommand(): Promise<void> {
 async function main(): Promise<void> {
   const rawArgs = process.argv.slice(2);
   const verbose = rawArgs.includes('--verbose') || rawArgs.includes('-V');
-  const args = rawArgs.filter((a) => a !== '--verbose' && a !== '-V');
+  const once = rawArgs.includes('--once');
+  const args = rawArgs.filter((a) => a !== '--verbose' && a !== '-V' && a !== '--once');
 
   if (args[0] === 'login' && args[1] === 'google') {
     await loginGoogleCommand();
@@ -61,6 +63,7 @@ async function main(): Promise<void> {
         '  init             Create a starter config file (--force to overwrite)',
         '',
         'Options:',
+        '  --once           Print a one-line summary and exit (for shell prompts)',
         '  -h, --help       Show this help',
         '  -v, --version    Print version',
         '  --verbose        Print full stack traces on error',
@@ -74,6 +77,11 @@ async function main(): Promise<void> {
 
   if (args.includes('--version') || args.includes('-v')) {
     process.stdout.write(`${await readVersion()}\n`);
+    return;
+  }
+
+  if (once) {
+    process.exitCode = await runOnce();
     return;
   }
 
