@@ -68,3 +68,37 @@ refresh = 60
 # url = "https://api.github.com/notifications"
 # refresh = 120
 # secret = "github-token"   # -> keychain "github-token" or REVEILLE_SECRET_GITHUB_TOKEN
+
+# --- Sources that feed the summary line (and `reveille --once`) -----------------
+# The summary line at the top of the dashboard reads the calendar and todo sources
+# below: the countdown to your next event, today's event count, and unchecked todos.
+
+# Today's Google Calendar events plus a live countdown to the next one. Authorize
+# once with `reveille login google` — that needs GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
+# (from a Google Cloud OAuth desktop-app client) and stores a refresh token in the
+# keychain under "google-refresh". clientId/clientSecret/refreshToken take the same
+# secret refs used elsewhere: env:NAME, keychain:NAME, cmd:<command>, or a literal.
+#
+# [[sources]]
+# id = "calendar"
+# type = "google-calendar"
+# title = "Calendar"
+# clientId = "env:GOOGLE_CLIENT_ID"
+# clientSecret = "env:GOOGLE_CLIENT_SECRET"
+# refreshToken = "keychain:google-refresh"   # default; written by `reveille login google`
+# calendarId = "primary"                     # default
+# timezone = "Europe/Helsinki"               # optional; defaults to the system zone
+# maxEvents = 10                             # optional
+# refresh = 300
+
+# A markdown checklist — reads the GFM task items under one heading and surfaces the
+# unchecked ones. Only items under `section` (down to the next same-or-higher heading)
+# are read, so a backlog further down the file is ignored.
+#
+# [[sources]]
+# id = "todo"
+# type = "todo"
+# title = "Today"
+# path = "~/notes/todo.md"    # `~` and $VARS are expanded
+# section = "Today"           # heading to read items under (default)
+# refresh = 30
