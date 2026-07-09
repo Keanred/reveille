@@ -2,6 +2,27 @@
   "name": "reveille",
   "version": "0.1.0",
   "description": "A terminal dashboard that aggregates live data sources into one Ink-rendered view.",
+  "license": "MIT",
+  "author": "Keanred <47241653+Keanred@users.noreply.github.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Keanred/reveille.git"
+  },
+  "homepage": "https://github.com/Keanred/reveille#readme",
+  "bugs": "https://github.com/Keanred/reveille/issues",
+  "keywords": [
+    "cli",
+    "terminal",
+    "dashboard",
+    "tui",
+    "ink",
+    "react",
+    "calendar",
+    "weather",
+    "github",
+    "todo",
+    "productivity"
+  ],
   "type": "module",
   "engines": {
     "node": ">=20.12.0"
@@ -13,10 +34,13 @@
   "files": [
     "dist",
     "config.example.toml",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "dev": "tsx --env-file-if-exists=.env src/cli.tsx",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
     "build": "tsc -p tsconfig.json",
     "start": "node --env-file-if-exists=.env dist/cli.js",
     "login:google": "tsx --env-file-if-exists=.env src/cli.tsx login google",
