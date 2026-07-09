@@ -1,9 +1,18 @@
-import { readFile } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import toml from '@iarna/toml';
 import { z } from 'zod';
 import { configSchema, DEFAULT_CONFIG, type ReveilleConfig } from './schema.js';
+
+export async function configExists(file: string = configFile()): Promise<boolean> {
+  try {
+    await access(file);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export function configDir(): string {
   const base = process.env.XDG_CONFIG_HOME?.trim() || path.join(os.homedir(), '.config');

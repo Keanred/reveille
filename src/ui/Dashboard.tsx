@@ -128,25 +128,25 @@ export function Dashboard({ config }: DashboardProps) {
         {sources.length === 0 ? (
           <Box flexDirection="column" padding={1}>
             <Text color={theme.warn}>No sources configured.</Text>
-          <Text dimColor>Copy config.example.toml to {configFile()} to begin.</Text>
-        </Box>
-      ) : (
-        <Box padding={1}>
-          {columns.map((col, ci) => (
-            <Box key={ci} flexDirection="column">
-              {col.map((source) => (
-                <Box key={source.id} ref={(el) => void (el && refs.current.set(source.id, el))}>
-                  <Panel
-                    title={source.label}
-                    state={states.get(source.id) ?? initialState()}
-                    body={bodyFor(source.kind)}
-                  />
-                </Box>
-              ))}
-            </Box>
-          ))}
-        </Box>
-      )}
+            <Text dimColor>Run `reveille init` to create a starter config at {configFile()}.</Text>
+          </Box>
+        ) : (
+          <Box padding={1}>
+            {columns.map((col, ci) => (
+              <Box key={ci} flexDirection="column">
+                {col.map((source) => (
+                  <Box key={source.id} ref={(el) => void (el && refs.current.set(source.id, el))}>
+                    <Panel
+                      title={source.label}
+                      state={states.get(source.id) ?? initialState()}
+                      body={bodyFor(source.kind)}
+                    />
+                  </Box>
+                ))}
+              </Box>
+            ))}
+          </Box>
+        )}
       </Box>
     </ThemeProvider>
   );

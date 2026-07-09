@@ -2,11 +2,13 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { render } from 'ink';
-import { configFile, loadConfig } from './config/load.js';
 import { loginGoogle } from './core/google-login.js';
 import { createSecretStore } from './core/secrets.js';
 import { Dashboard } from './ui/Dashboard.js';
 import { runDoctor } from './commands/doctor.js';
+import { createInterface } from 'node:readline/promises';
+import { configExists, configFile, loadConfig } from './config/load.js';
+import { runInit, scaffoldConfig } from './commands/init.js';
 
 async function readVersion(): Promise<string> {
   const pkgUrl = new URL('../package.json', import.meta.url);
@@ -41,6 +43,11 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (args[0] === 'init') {
+    process.exitCode = await runInit({ force: args.includes('--force') });
+    return;
+  }
+
   if (args.includes('--help') || args.includes('-h')) {
     process.stdout.write(
       [
@@ -51,6 +58,7 @@ async function main(): Promise<void> {
         'Commands:',
         '  login google     Authorize Google Calendar (stores a refresh token)',
         '  doctor           Check config and credentials',
+        '  init             Create a starter config file (--force to overwrite)',
         '',
         'Options:',
         '  -h, --help       Show this help',
@@ -67,6 +75,21 @@ async function main(): Promise<void> {
   if (args.includes('--version') || args.includes('-v')) {
     process.stdout.write(`${await readVersion()}\n`);
     return;
+  }
+
+  if (!(await configExists()) && process.stdin.isTTY) {
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    const answer = (
+      await rl.question(
+        `No config found at ${configFile()}.\nCreate a starter config there? [Y/n] `,
+      )
+    )
+      .trim()
+      .toLowerCase();
+    rl.close();
+    if (answer === '' || answer === 'y' || answer === 'yes') {
+      process.stdout.write(`✓ created ${await scaffoldConfig()}\n`);
+    }
   }
 
   const config = await loadConfig();
