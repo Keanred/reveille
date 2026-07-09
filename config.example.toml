@@ -77,14 +77,21 @@ refresh = 60
 # once with `reveille login google` — that needs GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
 # (from a Google Cloud OAuth desktop-app client) and stores a refresh token in the
 # keychain under "google-refresh". clientId/clientSecret/refreshToken take the same
-# secret refs used elsewhere: env:NAME, keychain:NAME, cmd:<command>, or a literal.
+# secret refs used elsewhere: keychain:NAME, env:NAME, cmd:<command>, or a literal.
+#
+# Prefer keychain: refs — env: only resolves when a shell has the vars exported (or
+# `npm run dev`/`start` loads .env), so an `env:`-based calendar silently fails when
+# reveille runs from a bare `npx tsx` invocation or `$(reveille --once)` in a prompt.
+# Stash the client id/secret once, then reference them:
+#   security add-generic-password -U -s reveille -a google-client-id     -w 'YOUR_ID'
+#   security add-generic-password -U -s reveille -a google-client-secret -w 'YOUR_SECRET'
 #
 # [[sources]]
 # id = "calendar"
 # type = "google-calendar"
 # title = "Calendar"
-# clientId = "env:GOOGLE_CLIENT_ID"
-# clientSecret = "env:GOOGLE_CLIENT_SECRET"
+# clientId = "keychain:google-client-id"
+# clientSecret = "keychain:google-client-secret"
 # refreshToken = "keychain:google-refresh"   # default; written by `reveille login google`
 # calendarId = "primary"                     # default
 # timezone = "Europe/Helsinki"               # optional; defaults to the system zone
