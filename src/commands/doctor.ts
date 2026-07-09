@@ -7,7 +7,6 @@ function line(text: string): void {
   process.stdout.write(`${text}\n`);
 }
 
-/** Secret references a source needs, so we can check they resolve without fetching. */
 function sourceSecrets(cfg: SourceConfig): { label: string; ref: string }[] {
   switch (cfg.type) {
     case 'github':

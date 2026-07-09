@@ -68,7 +68,6 @@ function parseSection(markdown: string, section: string): TodoItem[] {
   return items;
 }
 
-/** Expands a leading `~` and `$VAR`/`${VAR}` references to an absolute path. */
 function expandPath(p: string): string {
   const home = p.startsWith('~') ? homedir() + p.slice(1) : p;
   return home.replace(/\$\{?(\w+)\}?/g, (_, name) => process.env[name] ?? '');

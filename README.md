@@ -45,18 +45,31 @@ Press `q` (or Ctrl-C) to quit the dashboard.
 
 ## Commands & flags
 
-| Invocation              | Does                                                 |
-| ----------------------- | ---------------------------------------------------- |
-| `reveille`              | Launch the interactive dashboard (default)           |
-| `reveille init`         | Scaffold a starter config (`--force` to overwrite)   |
-| `reveille doctor`       | Validate config and check every source's credentials |
-| `reveille login google` | Authorize Google Calendar; stores a refresh token    |
-| `--help` / `-h`         | Usage                                                |
-| `--version` / `-v`      | Print version                                        |
-| `--verbose` / `-V`      | Full stack traces on error                           |
+| Invocation              | Does                                                  |
+| ----------------------- | ----------------------------------------------------- |
+| `reveille`              | Launch the interactive dashboard (default)            |
+| `reveille init`         | Scaffold a starter config (`--force` to overwrite)    |
+| `reveille doctor`       | Validate config and check every source's credentials  |
+| `reveille login google` | Authorize Google Calendar; stores a refresh token     |
+| `reveille --once`       | Print a one-line summary and exit (for shell prompts) |
+| `--help` / `-h`         | Usage                                                 |
+| `--version` / `-v`      | Print version                                         |
+| `--verbose` / `-V`      | Full stack traces on error                            |
 
 `reveille doctor` is the first thing to run when a panel misbehaves — it reports which
 credential failed to resolve and where it was looked for.
+
+`reveille --once` fetches every source once and prints a compact line — the next event
+and its countdown, today's event count, and unchecked todos — then exits. Colours strip
+automatically when stdout is not a TTY, so it drops straight into a prompt:
+
+```bash
+reveille --once                 # -> Next: Standup in 12m  ·  4 events  ·  2 due
+PROMPT='$(reveille --once)'$'\n'$PROMPT   # e.g. in ~/.zshrc
+```
+
+Prefer `keychain:` secret refs (see [Secrets](#secrets)) for any source it reads —
+`env:` refs won't resolve from a bare prompt with no `.env` loaded.
 
 ## Scripts
 
