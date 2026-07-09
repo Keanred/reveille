@@ -8,18 +8,18 @@ source on its own cadence — every request abortable and timeout-bounded.
 
 ## Stack
 
-| Concern    | Choice                                   |
-| ---------- | ---------------------------------------- |
-| Language   | TypeScript (end-to-end, ESM)             |
-| Renderer   | Ink (React for the terminal)             |
-| Runtime    | Node 20.6+ (native `fetch`, `import.meta`)|
-| Layout     | Ink flexbox (Yoga)                       |
-| HTTP       | Native `fetch` + `AbortSignal.any/timeout`|
-| Config     | TOML via `@iarna/toml`                    |
-| Cache      | JSON on disk under `~/.config/reveille/cache/` |
-| Secrets    | OS keychain via `keytar`, env-var fallback |
-| Test       | vitest                                   |
-| Lint/format| eslint + prettier                        |
+| Concern     | Choice                                         |
+| ----------- | ---------------------------------------------- |
+| Language    | TypeScript (end-to-end, ESM)                   |
+| Renderer    | Ink (React for the terminal)                   |
+| Runtime     | Node 20.6+ (native `fetch`, `import.meta`)     |
+| Layout      | Ink flexbox (Yoga)                             |
+| HTTP        | Native `fetch` + `AbortSignal.any/timeout`     |
+| Config      | TOML via `@iarna/toml`                         |
+| Cache       | JSON on disk under `~/.config/reveille/cache/` |
+| Secrets     | OS keychain via `keytar`, env-var fallback     |
+| Test        | vitest                                         |
+| Lint/format | eslint + prettier                              |
 
 These are the defaults chosen from the spec's "pick one" rows (Node over Bun,
 TOML over YAML, eslint+prettier over biome). Swap them per the notes below.
@@ -42,16 +42,16 @@ npm link             # then: reveille   (exercises the package.json bin field)
 
 ## Scripts
 
-| Script              | Does                                  |
-| ------------------- | ------------------------------------- |
-| `npm run dev`       | Run the TUI from source (`tsx`)       |
-| `npm run build`     | Type-check + emit `dist/`             |
-| `npm start`         | Run the built CLI                     |
-| `npm run typecheck` | `tsc --noEmit`                        |
-| `npm test`          | Run the vitest suite once             |
-| `npm run test:watch`| Watch mode                            |
-| `npm run lint`      | eslint                                |
-| `npm run format`    | prettier --write                      |
+| Script               | Does                            |
+| -------------------- | ------------------------------- |
+| `npm run dev`        | Run the TUI from source (`tsx`) |
+| `npm run build`      | Type-check + emit `dist/`       |
+| `npm start`          | Run the built CLI               |
+| `npm run typecheck`  | `tsc --noEmit`                  |
+| `npm test`           | Run the vitest suite once       |
+| `npm run test:watch` | Watch mode                      |
+| `npm run lint`       | eslint                          |
+| `npm run format`     | prettier --write                |
 
 ## Layout
 
@@ -85,10 +85,10 @@ typed data feed:
 
 ```ts
 interface Source<T> {
-  readonly id: string;              // stable; also the cache key
+  readonly id: string; // stable; also the cache key
   readonly title: string;
   readonly refreshIntervalMs?: number;
-  load(ctx: SourceContext): Promise<T>;  // must honor ctx.signal
+  load(ctx: SourceContext): Promise<T>; // must honor ctx.signal
 }
 ```
 

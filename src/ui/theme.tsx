@@ -9,8 +9,8 @@ export interface Theme {
 }
 
 export const PRESETS: Record<string, Theme> = {
-  default: { accent: 'cyan',    ok: 'green',   warn: 'yellow',  error: 'red' },
-  nord:    { accent: '#88C0D0', ok: '#A3BE8C', warn: '#EBCB8B', error: '#BF616A' },
+  default: { accent: 'cyan', ok: 'green', warn: 'yellow', error: 'red' },
+  nord: { accent: '#88C0D0', ok: '#A3BE8C', warn: '#EBCB8B', error: '#BF616A' },
   gruvbox: { accent: '#83A598', ok: '#B8BB26', warn: '#FABD2F', error: '#FB4934' },
 };
 

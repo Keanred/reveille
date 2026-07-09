@@ -24,11 +24,10 @@ export function dockerSource(cfg: DockerSourceConfig): Source<DockerData> {
     async fetch(ctx) {
       let stdout: string;
       try {
-        ({ stdout } = await execFileAsync(
-          'docker',
-          ['ps', '--format', '{{.Names}}\t{{.Status}}'],
-          { signal: ctx.signal, encoding: 'utf8' },
-        ));
+        ({ stdout } = await execFileAsync('docker', ['ps', '--format', '{{.Names}}\t{{.Status}}'], {
+          signal: ctx.signal,
+          encoding: 'utf8',
+        }));
       } catch (err) {
         throw new Error(describeError(err));
       }

@@ -65,7 +65,9 @@ async function scanRepo(
       await runGit(path, ['fetch', '--quiet'], signal);
     }
 
-    const status = parseStatus(await runGit(path, ['status', '--porcelain=v2', '--branch'], signal));
+    const status = parseStatus(
+      await runGit(path, ['status', '--porcelain=v2', '--branch'], signal),
+    );
 
     const lastCommitAt = await lastCommit(path, signal);
 
@@ -84,10 +86,9 @@ async function runGit(path: string, args: string[], signal: AbortSignal): Promis
   return stdout;
 }
 
-function parseStatus(out: string): Pick<
-  RepoStatus,
-  'branch' | 'detached' | 'dirty' | 'dirtyCount' | 'ahead' | 'behind'
-> {
+function parseStatus(
+  out: string,
+): Pick<RepoStatus, 'branch' | 'detached' | 'dirty' | 'dirtyCount' | 'ahead' | 'behind'> {
   let branch: string | null = null;
   let detached = false;
   let ahead = 0;

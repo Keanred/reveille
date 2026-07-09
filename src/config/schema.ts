@@ -92,7 +92,7 @@ export const headlineSourceSchema = baseSource.extend({
   type: z.literal('headline'),
   title: z.string().optional(),
   feed: z.literal('best').or(z.literal('top')),
-})
+});
 
 export const sourceSchema = z.discriminatedUnion('type', [
   clockSourceSchema,

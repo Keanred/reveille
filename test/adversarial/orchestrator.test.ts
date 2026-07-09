@@ -111,7 +111,10 @@ describe('streamAll', () => {
 
   it('emits a stale/error update without stalling the healthy ones behind it', async () => {
     const cache = new MemoryCache();
-    const good = source({ id: 'good', fetch: () => new Promise((r) => setTimeout(() => r(1), 40)) });
+    const good = source({
+      id: 'good',
+      fetch: () => new Promise((r) => setTimeout(() => r(1), 40)),
+    });
     const bad = source({
       id: 'bad',
       fetch: async () => {

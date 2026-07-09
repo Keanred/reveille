@@ -70,7 +70,8 @@ export function sunTimes(lat: number, lon: number, dateMs: number): SunTimes {
   const dec = declination(l);
   const noon = solarTransitJ(ds, m, l);
 
-  const cosH = (Math.sin(HORIZON) - Math.sin(phi) * Math.sin(dec)) / (Math.cos(phi) * Math.cos(dec));
+  const cosH =
+    (Math.sin(HORIZON) - Math.sin(phi) * Math.sin(dec)) / (Math.cos(phi) * Math.cos(dec));
   if (cosH > 1) return { state: 'polar-night', sunrise: null, sunset: null };
   if (cosH < -1) return { state: 'midnight-sun', sunrise: null, sunset: null };
 

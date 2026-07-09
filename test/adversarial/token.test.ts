@@ -11,7 +11,10 @@ function clock(start = 0) {
 describe('refreshingProvider', () => {
   it('caches the access token until it nears expiry, then refreshes', async () => {
     const c = clock();
-    const refresh = vi.fn(async () => ({ accessToken: `tok-${refresh.mock.calls.length}`, expiresInSec: 3600 }));
+    const refresh = vi.fn(async () => ({
+      accessToken: `tok-${refresh.mock.calls.length}`,
+      expiresInSec: 3600,
+    }));
     const provider = refreshingProvider(refresh, c.now, 60_000);
 
     expect(await provider.token()).toBe('tok-1');
@@ -52,7 +55,10 @@ describe('refreshingProvider', () => {
 
   it('invalidate() forces the next call to refresh', async () => {
     const c = clock();
-    const refresh = vi.fn(async () => ({ accessToken: `tok-${refresh.mock.calls.length}`, expiresInSec: 3600 }));
+    const refresh = vi.fn(async () => ({
+      accessToken: `tok-${refresh.mock.calls.length}`,
+      expiresInSec: 3600,
+    }));
     const provider = refreshingProvider(refresh, c.now);
 
     expect(await provider.token()).toBe('tok-1');
@@ -82,7 +88,11 @@ describe('patProvider', () => {
 
   it('invalidate() re-reads the store (e.g. after a rotation)', async () => {
     let current = 'old';
-    const secrets: SecretStore = { get: async () => current, set: async () => {}, delete: async () => false };
+    const secrets: SecretStore = {
+      get: async () => current,
+      set: async () => {},
+      delete: async () => false,
+    };
     const provider = patProvider('keychain:github-token', secrets);
 
     expect(await provider.token()).toBe('old');

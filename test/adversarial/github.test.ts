@@ -112,7 +112,10 @@ describe('github source', () => {
     const spy = route((url) => {
       // The search reports a remaining count at the floor, so the CI fan-out never fires.
       if (url.includes('/search/issues')) {
-        return json({ items: [prItem('o/r', 2), prItem('o/r', 3)] }, { 'x-ratelimit-remaining': '10' });
+        return json(
+          { items: [prItem('o/r', 2), prItem('o/r', 3)] },
+          { 'x-ratelimit-remaining': '10' },
+        );
       }
       throw new Error(`should not have requested ${url}`);
     });
@@ -171,9 +174,9 @@ describe('github source', () => {
       );
     });
 
-    const data = await githubSource(
-      cfg({ myPrs: false, notifications: false, maxPrs: 5 }),
-    ).fetch(ctx());
+    const data = await githubSource(cfg({ myPrs: false, notifications: false, maxPrs: 5 })).fetch(
+      ctx(),
+    );
 
     expect(data.reviewRequests).toHaveLength(2);
     expect(spy).toHaveBeenCalledTimes(2);
